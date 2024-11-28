@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
@@ -6,33 +6,65 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import CloseIcon from "@mui/icons-material/Close";
 import DialogTitle from "@mui/material/DialogTitle";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { IconButton } from "@mui/material";
-import { DesktopDatePicker, DesktopTimePicker } from "@mui/x-date-pickers";
-import { Moment } from "moment";
+import DatePicker from "react-widgets/DatePicker";
+import "react-widgets/styles.css";
 import { combineDateAndTime } from "../../helpers/CombineDateAndTime";
+import { EventType } from "../calendar/Calendar";
+// import TimePicker from "react-time-picker";
+// import DatePicker from "react-datepicker";
+import "react-time-picker/dist/TimePicker.css";
+import "react-datepicker/dist/react-datepicker.css";
+import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import moment, { Moment } from "moment";
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddEvent: (someEvent: EventType) => void;
+  onChangeEvent: (someEvent: EventType) => void;
+  changedEvent: EventType | undefined;
 }
-const FormDialog: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
+const FormDialog: React.FC<EventModalProps> = ({
+  isOpen,
+  onClose,
+  onAddEvent,
+  onChangeEvent,
+  changedEvent,
+}) => {
   const [eventName, setEventName] = useState("");
-  const [eventDay, setEventDay] = useState<Moment | null>(null);
-  const [eventData, setEventData] = useState<Date | null>(null);
+  const [eventDay, setEventDay] = useState<Date | null | undefined>(null);
   const [eventTime, setEventTime] = useState<Moment | null>(null);
   const [notes, setNotes] = useState("");
+  useEffect(() => {
+    if (changedEvent) {
+      setEventName(changedEvent.title || "");
+      setEventDay(changedEvent.start ? new Date(changedEvent.start) : null);
+      setEventTime(changedEvent.start ? moment(changedEvent.start) : null);
+      setNotes(changedEvent.notes || "");
+    } else {
+      setEventName("");
+      setEventDay(null);
+      setEventTime(null);
+      setNotes("");
+    }
+  }, [changedEvent]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const formData = new FormData(event.currentTarget);
-    const formJson = Object.fromEntries(formData.entries());
-    const newEventData = combineDateAndTime(eventDay, eventTime);
-    setEventData(newEventData);
-    console.log(newEventData);
-    console.log(formJson);
-    console.log(eventData);
+    const newEvent: EventType = {
+      title: eventName,
+      start: combineDateAndTime(eventDay, eventTime),
+      notes,
+    };
+
+    if (changedEvent) {
+      onChangeEvent(newEvent);
+    } else {
+      onAddEvent(newEvent);
+    }
+
     setEventName("");
     setEventDay(null);
     setEventTime(null);
@@ -74,18 +106,30 @@ const FormDialog: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
             value={eventName}
             onChange={(e) => setEventName(e.target.value)}
           />
-          <LocalizationProvider dateAdapter={AdapterMoment}>
-            <DesktopDatePicker
-              label="Event Day"
-              value={eventDay}
-              onChange={(newValue: Moment | null) => setEventDay(newValue)}
-            />
-            <DesktopTimePicker
-              label="Event Time"
+
+          <div>
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <TimePicker
+                label="Select time"
+                value={eventTime}
+                onChange={(newValue) => setEventTime(newValue)}
+              />
+            </LocalizationProvider>
+            {/* <TimePicker
+              onChange={(time) => setEventTime(time)}
               value={eventTime}
-              onChange={(newValue: Moment | null) => setEventTime(newValue)}
+            /> */}
+          </div>
+          <div>
+            <DatePicker
+              value={eventDay}
+              min={new Date()}
+              onChange={(date: Date | null | undefined) => setEventDay(date)}
             />
-          </LocalizationProvider>
+
+            {/* <DatePicker selected={eventDay} /> */}
+          </div>
+
           <TextField
             autoFocus
             required
