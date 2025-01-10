@@ -1,3 +1,3 @@
 export default function ChatRoom() {
-  return <h1>ChatRoom</h1>;
+  return <h1>Chat Room</h1>;
 }
