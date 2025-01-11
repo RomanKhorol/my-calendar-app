@@ -11,16 +11,32 @@ export type EventType = {
   start: Date | null;
   notes: string;
 };
+export type slotInfo = {
+  start: Date;
+};
 
-export default function CalendarTable() {
+export default function CalendarTable(): JSX.Element {
   const [events, setEvents] = useState<EventType[]>([]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const [currentEvent, setCurrentEvent] = useState<EventType>();
-  const handleSelectSlot = () => {
-    // slotInfo: {
-    //   start: Date;
-    // }
-    setCurrentEvent(undefined);
+  const handleSelectSlot = (slotInfo: slotInfo) => {
+    const date = new Date(slotInfo.start)
+    const now = new Date();
+    date.setHours(
+      now.getHours(),
+      now.getMinutes(),
+      now.getSeconds(),
+      now.getMilliseconds()
+    );
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (date < midnight) {
+      return;
+    }
+    setCurrentEvent({
+      title: "",
+      start: date,
+      notes: "",
+    });
     setOpen(true);
   };
   const handleAddEvent = (newEvent: EventType) => {
@@ -39,6 +55,7 @@ export default function CalendarTable() {
   };
 
   const onSelectEvent = (selectedEvent: EventType) => {
+    console.log(selectedEvent)
     setCurrentEvent(selectedEvent);
     setOpen(true);
   };
