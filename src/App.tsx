@@ -11,8 +11,10 @@ import HelpCenter from "./components/help-center/HelpCenter";
 import Settings from "./components/setting-page/Settings";
 import CalendarTable from "./components/calendar/Calendar";
 import Layout from "./components/layout/Layout";
+// import "../firebase/firebase"
 
 function App() {
+    
   return (
     <div>
       <Routes>
